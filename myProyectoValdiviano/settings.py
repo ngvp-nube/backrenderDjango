@@ -75,6 +75,11 @@ TEMPLATES = [
     },
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://backrenderdjango.onrender.com'
+]
+
+
 WSGI_APPLICATION = 'myProyectoValdiviano.wsgi.application'
 
 
