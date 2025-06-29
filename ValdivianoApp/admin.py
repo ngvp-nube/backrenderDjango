@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm 
+from .models import Producto
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
@@ -22,4 +23,10 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ('username',)
     ordering = ('username',)
 
+@admin.register(Producto)
+class ProductoAdmin(admin.ModelAdmin):
+    list_display = ('id', 'nombre', 'codigo', 'precio')  # Ajusta los campos según tu modelo
+
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(Producto)
+

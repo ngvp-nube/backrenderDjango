@@ -8,6 +8,8 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
+from rest_framework.views import APIView
+from rest_framework import status
 # Create your views here.
 
 class ProductoViewSet(generics.ListCreateAPIView):
@@ -47,3 +49,13 @@ class CustomAuthToken(ObtainAuthToken):
 class UsuarioCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UsuarioCreateSerializer
+
+
+class ProductoPorCodigoView(APIView):
+    def get(self, request, codigo):
+        try:
+            producto = Producto.objects.get(codigo=codigo)
+            serializer = ProductoSerializer(producto)
+            return Response(serializer.data)
+        except Producto.DoesNotExist:
+            return Response({'error': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
