@@ -23,9 +23,9 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ('username',)
     ordering = ('username',)
 
+@admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
     list_display = ('id', 'nombre', 'codigo', 'precio')  # Ajusta los campos según tu modelo
 
 admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(Producto, ProductoAdmin)
 
