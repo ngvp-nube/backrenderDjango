@@ -60,6 +60,6 @@ class ProductoPorCodigoView(APIView):
         except Producto.DoesNotExist:
             return Response({'error': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
         
-class BoletaCreateView(generics.CreateAPIView):
+class BoletaListCreateView(generics.ListCreateAPIView):
     queryset = Boleta.objects.all()
     serializer_class = BoletaSerializer
