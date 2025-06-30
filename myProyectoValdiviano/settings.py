@@ -88,10 +88,15 @@ WSGI_APPLICATION = 'myProyectoValdiviano.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'bdvaldi',
+        'USER': 'admin',
+        'PASSWORD': '4K6qwEM8drtynhZ7uAdHFCWbp8hFytLG',
+        'HOST': 'dpg-d1gugcali9vc73b4bnag-a.oregon-postgres.render.com',  # o IP/URL si es remoto
+        'PORT': '5432',
     }
 }
+
 AUTH_USER_MODEL = 'ValdivianoApp.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
