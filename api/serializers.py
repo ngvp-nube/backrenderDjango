@@ -29,3 +29,23 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = CustomUser.objects.create_user(**validated_data)
         return user
+    
+#boleta y detalle
+class DetalleBoletaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DetalleBoleta
+        fields = ['nombre', 'precio', 'cantidad', 'total']
+
+class BoletaSerializer(serializers.ModelSerializer):
+    detalles = DetalleBoletaSerializer(many=True)
+
+    class Meta:
+        model = Boleta
+        fields = ['id', 'fecha', 'total', 'detalles']
+
+    def create(self, validated_data):
+        detalles_data = validated_data.pop('detalles')
+        boleta = Boleta.objects.create(**validated_data)
+        for detalle in detalles_data:
+            DetalleBoleta.objects.create(boleta=boleta, **detalle)
+        return boleta

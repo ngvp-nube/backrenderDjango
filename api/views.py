@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from ValdivianoApp.models import CustomUser, Producto
-from .serializers import ProductoSerializer, UsuarioCreateSerializer 
+from ValdivianoApp.models import CustomUser, Producto, Boleta
+from .serializers import ProductoSerializer, UsuarioCreateSerializer ,BoletaSerializer
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
@@ -59,3 +59,7 @@ class ProductoPorCodigoView(APIView):
             return Response(serializer.data)
         except Producto.DoesNotExist:
             return Response({'error': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+class BoletaCreateView(generics.CreateAPIView):
+    queryset = Boleta.objects.all()
+    serializer_class = BoletaSerializer

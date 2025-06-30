@@ -9,4 +9,5 @@ urlpatterns=[
     path('api/login/', CustomAuthToken.as_view()),
     path('api/usuarios/', UsuarioCreateView.as_view(), name='crear-usuario'),   
     path('api/producto/<str:codigo>/', ProductoPorCodigoView.as_view(), name='producto-por-codigo'),
+    path('api/boleta/', BoletaCreateView.as_view(), name='crear-boleta'),
 ]

@@ -13,3 +13,14 @@ class Producto(models.Model):
 
 class CustomUser(AbstractUser):
     rol = models.CharField(max_length=50, choices=[('Admin', 'Admin'), ('Vendedor', 'Vendedor')])
+
+class Boleta(models.Model):
+    fecha = models.DateTimeField(auto_now_add=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+
+class DetalleBoleta(models.Model):
+    boleta = models.ForeignKey(Boleta, related_name='detalles', on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=100)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    cantidad = models.DecimalField(max_digits=10, decimal_places=3)  # en gramos
+    total = models.DecimalField(max_digits=10, decimal_places=2)
