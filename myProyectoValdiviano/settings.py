@@ -12,6 +12,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+import dj_database_url
+from decouple import config
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL')
+    )
+}
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -86,16 +94,23 @@ WSGI_APPLICATION = 'myProyectoValdiviano.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'railway',
+#         'USER': 'postgres',
+#         'PASSWORD': 'oPyKXzXasISfvaBNoSBoawQTRwYaRLxe',
+#         'HOST': 'postgres.railway.internal',
+#         'PORT': '5432',
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bdvaldi',
-        'USER': 'admin',
-        'PASSWORD': '4K6qwEM8drtynhZ7uAdHFCWbp8hFytLG',
-        'HOST': 'dpg-d1gugcali9vc73b4bnag-a.oregon-postgres.render.com',  # o IP/URL si es remoto
-        'PORT': '5432',
-    }
+    'default': dj_database_url.parse(
+        f"postgresql://{config('DB_USER')}:{config('DB_PASSWORD')}@{config('DB_HOST')}:{config('DB_PORT')}/{config('DB_NAME')}"
+    )
 }
+
 
 AUTH_USER_MODEL = 'ValdivianoApp.CustomUser'
 
