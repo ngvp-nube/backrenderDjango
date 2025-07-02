@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-!g^vbo)39d##vb+o1iq(0667-t*@d)f9^_m8(fthnod=4smo*q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['myProyectoValdiviano.wsgi.application']
+ALLOWED_HOSTS = ['.railway.app']
 
 
 # Application definition
