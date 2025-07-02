@@ -101,8 +101,6 @@ DATABASES = {
 }
 
 
-
-
 AUTH_USER_MODEL = 'ValdivianoApp.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
