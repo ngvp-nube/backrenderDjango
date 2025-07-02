@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-!g^vbo)39d##vb+o1iq(0667-t*@d)f9^_m8(fthnod=4smo*q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['.railway.app']
+ALLOWED_HOSTS = ['myProyectoValdiviano.wsgi.application']
 
 
 # Application definition
@@ -79,7 +79,7 @@ TEMPLATES = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://backrenderdjango.onrender.com'
+    'https://web-production-d1c8d.up.railway.app',
 ]
 
 
