@@ -4,8 +4,8 @@ from .serializers import ProductoSerializer, UsuarioCreateSerializer ,BoletaSeri
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
 from rest_framework.permissions import AllowAny
-
-
+from datetime import datetime, timedelta
+from django.utils.timezone import make_aware
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -67,10 +67,21 @@ class BoletaListCreateView(generics.ListCreateAPIView):
     serializer_class = BoletaSerializer
 
 
-
 class TotalContabilidadView(APIView):
-    permission_classes = [AllowAny]  # 👈 Permite acceso sin autenticación
+    permission_classes = [AllowAny]
 
     def get(self, request):
-        total = sum(boleta.total for boleta in Boleta.objects.all())
+        fecha = request.query_params.get('fecha')
+
+        if fecha:
+            try:
+                inicio = make_aware(datetime.strptime(fecha, "%Y-%m-%d"))
+                fin = inicio + timedelta(days=1)
+                boletas = Boleta.objects.filter(fecha__gte=inicio, fecha__lt=fin)
+            except Exception as e:
+                return Response({'error': 'Fecha inválida', 'detalle': str(e)}, status=400)
+        else:
+            boletas = Boleta.objects.all()
+
+        total = sum(boleta.total for boleta in boletas)
         return Response({'total_general': total})
