@@ -85,3 +85,14 @@ class TotalContabilidadView(APIView):
 
         total = sum(boleta.total for boleta in boletas)
         return Response({'total_general': total})
+    
+
+class AnularBoletaView(APIView):
+    def post(self, request, boleta_id):
+        try:
+            boleta = Boleta.objects.get(pk=boleta_id)
+            boleta.estado = 'anulada'
+            boleta.save()
+            return Response({'mensaje': 'Boleta anulada correctamente'}, status=status.HTTP_200_OK)
+        except Boleta.DoesNotExist:
+            return Response({'error': 'Boleta no encontrada'}, status=status.HTTP_404_NOT_FOUND)

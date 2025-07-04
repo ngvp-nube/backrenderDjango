@@ -17,6 +17,9 @@ class CustomUser(AbstractUser):
 class Boleta(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
+    estado = models.CharField(max_length=20, default='activa')
+    def __str__(self):
+        return f'Boleta #{self.id} - {self.estado}'
 
 class DetalleBoleta(models.Model):
     boleta = models.ForeignKey(Boleta, related_name='detalles', on_delete=models.CASCADE)
