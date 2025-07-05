@@ -49,3 +49,8 @@ class BoletaSerializer(serializers.ModelSerializer):
         for detalle in detalles_data:
             DetalleBoleta.objects.create(boleta=boleta, **detalle)
         return boleta
+    
+class BoletaHistoricaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BoletaHistorica
+        fields = '__all__'

@@ -11,5 +11,6 @@ urlpatterns=[
     path('api/producto/<str:codigo>/', ProductoPorCodigoView.as_view(), name='producto-por-codigo'),
     path('api/boleta/', BoletaListCreateView.as_view(), name='boleta-list-create'),
     path('contabilidad/total/', TotalContabilidadView.as_view()),
-    path('api/boleta/<int:boleta_id>/anular/', AnularBoletaView.as_view(), name='anular-boleta') 
+    path('api/boleta/<int:boleta_id>/anular/', AnularBoletaView.as_view(), name='anular-boleta'),
+    path('api/boletas/eliminar/', EliminarBoletaAPIView.as_view(), name='eliminar-boleta'),
 ]

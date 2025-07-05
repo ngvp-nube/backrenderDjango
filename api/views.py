@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from ValdivianoApp.models import CustomUser, Producto, Boleta
+from ValdivianoApp.models import BoletaHistorica, CustomUser, Producto, Boleta
 from .serializers import ProductoSerializer, UsuarioCreateSerializer ,BoletaSerializer
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
@@ -96,3 +96,40 @@ class AnularBoletaView(APIView):
             return Response({'mensaje': 'Boleta anulada correctamente'}, status=status.HTTP_200_OK)
         except Boleta.DoesNotExist:
             return Response({'error': 'Boleta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        
+class EliminarBoletaAPIView(APIView):
+    def post(self, request):
+        boleta_id = request.data.get('boleta_id')
+
+        if not boleta_id:
+            return Response({'error': 'Debe proporcionar el ID de la boleta.'}, status=400)
+
+        try:
+            boleta = Boleta.objects.get(id=boleta_id)
+        except Boleta.DoesNotExist:
+            return Response({'error': 'Boleta no encontrada.'}, status=404)
+
+        # Convertir detalles en JSON
+        detalles = boleta.detalles.all()
+        productos = [
+            {
+                "nombre": detalle.nombre,
+                "precio": float(detalle.precio),
+                "cantidad": float(detalle.cantidad),
+                "total": float(detalle.total)
+            }
+            for detalle in detalles
+        ]
+
+        # Crear boleta histórica
+        BoletaHistorica.objects.create(
+            fecha=boleta.fecha,
+            total=boleta.total,
+            boleta_original_id=boleta.id,
+            productos=productos
+        )
+
+        # Eliminar boleta y sus detalles
+        boleta.delete()
+
+        return Response({'mensaje': 'Boleta archivada correctamente.'}, status=200)
