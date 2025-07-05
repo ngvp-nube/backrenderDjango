@@ -41,7 +41,7 @@ class BoletaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Boleta
-        fields = ['id', 'fecha', 'total', 'detalles']
+        fields = ['id', 'fecha', 'total','estado', 'detalles']
 
     def create(self, validated_data):
         detalles_data = validated_data.pop('detalles')
