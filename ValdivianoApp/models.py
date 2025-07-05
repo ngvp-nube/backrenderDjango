@@ -6,6 +6,7 @@ class Producto(models.Model):
     nombre = models.CharField(max_length=100)
     precio = models.IntegerField()
     codigo = models.CharField(max_length=50, unique=True)
+    tipo_venta = models.CharField(max_length=10, choices=[('gramos', 'Gramos'), ('unidad', 'Unidad')],default='unidad')
     peso_kg = models.DecimalField(max_digits=10, decimal_places=2,default=0.0)  # Peso (Kg)
     cantidad = models.IntegerField(default=0)  
     def __str__(self):
