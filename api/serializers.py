@@ -30,11 +30,11 @@ class UsuarioCreateSerializer(serializers.ModelSerializer):
         user = CustomUser.objects.create_user(**validated_data)
         return user
     
-#boleta y detalle
 class DetalleBoletaSerializer(serializers.ModelSerializer):
     class Meta:
         model = DetalleBoleta
-        fields = ['nombre', 'precio', 'cantidad', 'total']
+        fields = ['nombre', 'precio', 'cantidad', 'total', 'tipo_venta']
+
 
 class BoletaSerializer(serializers.ModelSerializer):
     detalles = DetalleBoletaSerializer(many=True)
@@ -42,21 +42,34 @@ class BoletaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Boleta
         fields = ['id', 'fecha', 'total', 'estado', 'detalles']
-        read_only_fields = ['total']  # Para evitar que venga como input
+        read_only_fields = ['total']
 
     def create(self, validated_data):
         detalles_data = validated_data.pop('detalles')
+        total = 0
 
-        # Calcular el total a partir de los detalles
-        total = sum([
-            detalle['precio'] * detalle['cantidad'] / 1000
-            if detalle.get('tipo_venta', '').lower() == 'gramos'
-            else detalle['precio'] * detalle['cantidad']
-            for detalle in detalles_data
-        ])
+        for detalle in detalles_data:
+            # Convertimos valores a float para evitar errores
+            precio = float(detalle['precio'])
+            cantidad = float(detalle['cantidad'])
+            tipo_venta = detalle.get('tipo_venta', 'unidad').lower()
 
+            # Si ya viene el total, usamos ese; si no, lo calculamos
+            if 'total' in detalle and detalle['total'] not in (None, ''):
+                subtotal = float(detalle['total'])
+            else:
+                if tipo_venta == 'gramos':
+                    subtotal = precio * cantidad / 1000
+                else:
+                    subtotal = precio * cantidad
+                detalle['total'] = subtotal  # Guardamos en el detalle
+
+            total += subtotal
+
+        # Creamos la boleta con el total calculado
         boleta = Boleta.objects.create(total=total, **validated_data)
 
+        # Creamos los detalles
         for detalle in detalles_data:
             DetalleBoleta.objects.create(boleta=boleta, **detalle)
 

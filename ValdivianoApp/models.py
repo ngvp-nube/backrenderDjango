@@ -29,9 +29,15 @@ class Boleta(models.Model):
     def __str__(self):
         return f'Boleta #{self.id} - {self.estado}'
 
+TIPO_VENTA_CHOICES = [
+    ('gramos', 'Gramos'),
+    ('unidad', 'Unidad'),
+]
+
 class DetalleBoleta(models.Model):
     boleta = models.ForeignKey(Boleta, related_name='detalles', on_delete=models.CASCADE)
     nombre = models.CharField(max_length=100)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-    cantidad = models.DecimalField(max_digits=10, decimal_places=3)  # en gramos
+    cantidad = models.DecimalField(max_digits=10, decimal_places=3)
     total = models.DecimalField(max_digits=10, decimal_places=2)
+    tipo_venta = models.CharField(max_length=10, choices=TIPO_VENTA_CHOICES, default='unidad')  # ✅ agregado
