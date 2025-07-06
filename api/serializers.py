@@ -41,14 +41,27 @@ class BoletaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Boleta
-        fields = ['id', 'fecha', 'total','estado', 'detalles']
+        fields = ['id', 'fecha', 'total', 'estado', 'detalles']
+        read_only_fields = ['total']  # Para evitar que venga como input
 
     def create(self, validated_data):
         detalles_data = validated_data.pop('detalles')
-        boleta = Boleta.objects.create(**validated_data)
+
+        # Calcular el total a partir de los detalles
+        total = sum([
+            detalle['precio'] * detalle['cantidad'] / 1000
+            if detalle.get('tipo_venta', '').lower() == 'gramos'
+            else detalle['precio'] * detalle['cantidad']
+            for detalle in detalles_data
+        ])
+
+        boleta = Boleta.objects.create(total=total, **validated_data)
+
         for detalle in detalles_data:
             DetalleBoleta.objects.create(boleta=boleta, **detalle)
+
         return boleta
+
     
 class BoletaHistoricaSerializer(serializers.ModelSerializer):
     class Meta:
