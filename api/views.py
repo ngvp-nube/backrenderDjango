@@ -1,8 +1,10 @@
 from django.shortcuts import render
-from ValdivianoApp.models import BoletaHistorica, CustomUser, Producto, Boleta
+from ValdivianoApp.models import BoletaHistorica, CustomUser, DetalleBoleta, Producto, Boleta
 from .serializers import ProductoSerializer, UsuarioCreateSerializer ,BoletaSerializer
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
+from django.utils.dateparse import parse_date
+from django.db.models import Sum, F
 from rest_framework.permissions import AllowAny
 from datetime import datetime, timedelta
 from django.utils.timezone import make_aware
@@ -133,3 +135,26 @@ class EliminarBoletaAPIView(APIView):
         boleta.delete()
 
         return Response({'mensaje': 'Boleta archivada correctamente.'}, status=200)
+
+class ProductosPorFechaAPIView(APIView):
+    def get(self, request):
+        fecha_str = request.query_params.get('fecha')
+
+        if not fecha_str:
+            return Response({"error": "Debe proporcionar una fecha en formato YYYY-MM-DD."}, status=400)
+
+        try:
+            fecha = parse_date(fecha_str)
+            if not fecha:
+                raise ValueError
+        except ValueError:
+            return Response({"error": "Fecha inválida."}, status=400)
+
+        detalles = DetalleBoleta.objects.filter(boleta__fecha__date=fecha)
+
+        productos = detalles.values('nombre', 'precio').annotate(
+            total_cantidad=Sum('cantidad'),
+            total_ventas=Sum('total')
+        ).order_by('nombre')
+
+        return Response(productos, status=200)
