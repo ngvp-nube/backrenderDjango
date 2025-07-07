@@ -135,7 +135,7 @@ class EliminarBoletaAPIView(APIView):
         boleta.delete()
 
         return Response({'mensaje': 'Boleta archivada correctamente.'}, status=200)
-
+    
 class ProductosPorFechaAPIView(APIView):
     def get(self, request):
         fecha_str = request.query_params.get('fecha')
@@ -157,4 +157,10 @@ class ProductosPorFechaAPIView(APIView):
             total_ventas=Sum('total')
         ).order_by('nombre')
 
-        return Response(productos, status=200)
+        # Calcular el total general de ventas
+        total_general = detalles.aggregate(total=Sum('total'))['total'] or 0
+
+        return Response({
+            "productos": productos,
+            "total_general": total_general
+        }, status=200)
