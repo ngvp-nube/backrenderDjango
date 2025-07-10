@@ -15,5 +15,5 @@ urlpatterns=[
     path('api/boletas/eliminar/', EliminarBoletaAPIView.as_view(), name='eliminar-boleta'),
     path('api/productos-por-fecha/', ProductosPorFechaAPIView.as_view(), name='productos-por-fecha'),
     path('producto-actualizar/<str:codigo>/', ActualizarProductoAPIView.as_view()),
-
+    path('api/producto/eliminar/<str:codigo>/', EliminarProductoAPIView.as_view(), name='eliminar-producto'),
 ]

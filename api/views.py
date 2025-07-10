@@ -177,3 +177,12 @@ class ActualizarProductoAPIView(APIView):
             serializer.save()
             return Response({'mensaje': 'Producto actualizado correctamente', 'producto': serializer.data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class EliminarProductoAPIView(APIView):
+    def delete(self, request, codigo):
+        try:
+            producto = Producto.objects.get(codigo=codigo)
+            producto.delete()
+            return Response({'mensaje': 'Producto eliminado correctamente'}, status=status.HTTP_200_OK)
+        except Producto.DoesNotExist:
+            return Response({'error': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
