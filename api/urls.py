@@ -16,4 +16,5 @@ urlpatterns=[
     path('api/productos-por-fecha/', ProductosPorFechaAPIView.as_view(), name='productos-por-fecha'),
     path('producto-actualizar/<str:codigo>/', ActualizarProductoAPIView.as_view()),
     path('api/producto/eliminar/<str:codigo>/', EliminarProductoAPIView.as_view(), name='eliminar-producto'),
+    path('boletas/<int:pk>/', ObtenerBoletaPorIDView.as_view(), name='obtener-boleta'),
 ]

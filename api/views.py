@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework.generics import RetrieveAPIView
 # Create your views here.
 
 class ProductoViewSet(generics.ListCreateAPIView):
@@ -186,3 +187,7 @@ class EliminarProductoAPIView(APIView):
             return Response({'mensaje': 'Producto eliminado correctamente'}, status=status.HTTP_200_OK)
         except Producto.DoesNotExist:
             return Response({'error': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+class ObtenerBoletaPorIDView(RetrieveAPIView):
+    queryset = Boleta.objects.all()
+    serializer_class = BoletaSerializer
