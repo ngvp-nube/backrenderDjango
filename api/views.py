@@ -198,27 +198,3 @@ class ObtenerBoletaPorIDView(RetrieveAPIView):
     serializer_class = BoletaSerializer
 
 
-class FirmaDigitalAPIView(APIView):
-    def post(self, request):
-        try:
-            data_to_sign = request.data.get('data')
-            if not data_to_sign:
-                return Response({"error": "No data to sign"}, status=status.HTTP_400_BAD_REQUEST)
-
-            with open('keys/private-key.pem', 'rb') as key_file:
-                private_key = load_pem_private_key(key_file.read(), password=None)
-
-            signature = private_key.sign(
-                data_to_sign.encode('utf-8'),
-                padding.PKCS1v15(),
-                hashes.SHA256()
-            )
-
-            signature_b64 = base64.b64encode(signature).decode('utf-8')
-            return Response(signature_b64)
-
-        except Exception as e:
-            import traceback
-            print("ERROR FIRMA DIGITAL:")
-            traceback.print_exc()  # 👈 Esto imprime en consola el error real
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
