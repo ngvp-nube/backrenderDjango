@@ -1,4 +1,3 @@
-import os
 from django.shortcuts import render
 from ValdivianoApp.models import BoletaHistorica, CustomUser, DetalleBoleta, Producto, Boleta
 from myProyectoValdiviano import settings
@@ -201,13 +200,12 @@ class ObtenerBoletaPorIDView(RetrieveAPIView):
 
 class FirmaDigitalAPIView(APIView):
     def post(self, request):
-        data_to_sign = request.data.get('data')
-        if not data_to_sign:
-            return Response({"error": "No data to sign"}, status=status.HTTP_400_BAD_REQUEST)
-
         try:
-            key_path = os.path.join(settings.BASE_DIR, 'keys', 'private-key.pem')
-            with open(key_path, 'rb') as key_file:
+            data_to_sign = request.data.get('data')
+            if not data_to_sign:
+                return Response({"error": "No data to sign"}, status=status.HTTP_400_BAD_REQUEST)
+
+            with open('keys/private-key.pem', 'rb') as key_file:
                 private_key = load_pem_private_key(key_file.read(), password=None)
 
             signature = private_key.sign(
@@ -217,7 +215,10 @@ class FirmaDigitalAPIView(APIView):
             )
 
             signature_b64 = base64.b64encode(signature).decode('utf-8')
-            return Response({"signature": signature_b64})
+            return Response(signature_b64)
 
         except Exception as e:
+            import traceback
+            print("ERROR FIRMA DIGITAL:")
+            traceback.print_exc()  # 👈 Esto imprime en consola el error real
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
