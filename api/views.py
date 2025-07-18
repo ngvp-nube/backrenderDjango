@@ -15,6 +15,7 @@ from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
+from .utils.firma_digital import firmar_con_llave_privada
 # Create your views here.
 
 class ProductoViewSet(generics.ListCreateAPIView):
@@ -192,4 +193,15 @@ class ObtenerBoletaPorIDView(RetrieveAPIView):
     queryset = Boleta.objects.all()
     serializer_class = BoletaSerializer
 
-
+class FirmaDigitalAPIView(APIView):
+    def post(self, request):
+        data = request.data.get('data')
+        if not data:
+            return Response({"error": "No se recibió ningún dato para firmar."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            firma = firmar_con_llave_privada(data)
+            return Response({"firma": firma})
+        except Exception as e:
+            # El error se devuelve pero no rompe todo el sistema
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
