@@ -17,6 +17,11 @@ from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
 from .utils.firma_digital import firmar_con_llave_privada
 # Create your views here.
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+import os
+import base64
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
 
 class ProductoViewSet(generics.ListCreateAPIView):
     queryset = Producto.objects.all()
@@ -193,15 +198,37 @@ class ObtenerBoletaPorIDView(RetrieveAPIView):
     queryset = Boleta.objects.all()
     serializer_class = BoletaSerializer
 
+
 class FirmaDigitalAPIView(APIView):
     def post(self, request):
-        data = request.data.get('data')
-        if not data:
-            return Response({"error": "No se recibió ningún dato para firmar."}, status=status.HTTP_400_BAD_REQUEST)
-        
         try:
-            firma = firmar_con_llave_privada(data)
-            return Response({"firma": firma})
+            data_to_sign = request.data.get('data')
+            if not data_to_sign:
+                return Response({"error": "No data to sign"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Leer la clave privada desde variable de entorno
+            private_key_pem = os.getenv('PRIVATE_KEY')
+            if not private_key_pem:
+                return Response({"error": "Private key not configured"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # Convertir string a bytes (asegúrate que los saltos de línea están bien)
+            private_key_bytes = private_key_pem.encode('utf-8')
+
+            # Cargar clave privada
+            private_key = load_pem_private_key(private_key_bytes, password=None)
+
+            # Firmar
+            signature = private_key.sign(
+                data_to_sign.encode('utf-8'),
+                padding.PKCS1v15(),
+                hashes.SHA256()
+            )
+
+            signature_b64 = base64.b64encode(signature).decode('utf-8')
+
+            return Response({"signature": signature_b64})
+
         except Exception as e:
-            # El error se devuelve pero no rompe todo el sistema
+            import traceback
+            traceback.print_exc()
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
