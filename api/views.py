@@ -205,7 +205,7 @@ class FirmaDigitalAPIView(APIView):
 
         try:
             # Carga tu clave privada PEM desde un archivo seguro en el servidor
-            with open('path/to/private-key.pem', 'rb') as key_file:
+            with open('keys/private-key.pem', 'rb') as key_file:
                 private_key = load_pem_private_key(key_file.read(), password=None)
 
             # Firmar con SHA256 + PKCS1v15
