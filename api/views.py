@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from ValdivianoApp.models import BoletaHistorica, CustomUser, DetalleBoleta, Producto, Boleta
-from myProyectoValdiviano import settings
 from .serializers import ProductoSerializer, UsuarioCreateSerializer ,BoletaSerializer
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -8,17 +7,13 @@ from django.utils.dateparse import parse_date
 from django.db.models import Sum, F
 from rest_framework.permissions import AllowAny
 from datetime import datetime, timedelta
-import base64
 from django.utils.timezone import make_aware
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from cryptography.hazmat.primitives import hashes
 from django.contrib.auth import authenticate
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from rest_framework.views import APIView
 from rest_framework import status
-from cryptography.hazmat.primitives.asymmetric import padding
 from rest_framework.generics import RetrieveAPIView
 # Create your views here.
 
