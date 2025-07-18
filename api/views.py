@@ -1,5 +1,7 @@
+import os
 from django.shortcuts import render
 from ValdivianoApp.models import BoletaHistorica, CustomUser, DetalleBoleta, Producto, Boleta
+from myProyectoValdiviano import settings
 from .serializers import ProductoSerializer, UsuarioCreateSerializer ,BoletaSerializer
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -204,21 +206,18 @@ class FirmaDigitalAPIView(APIView):
             return Response({"error": "No data to sign"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Carga tu clave privada PEM desde un archivo seguro en el servidor
-            with open('keys/private-key.pem', 'rb') as key_file:
+            key_path = os.path.join(settings.BASE_DIR, 'keys', 'private-key.pem')
+            with open(key_path, 'rb') as key_file:
                 private_key = load_pem_private_key(key_file.read(), password=None)
 
-            # Firmar con SHA256 + PKCS1v15
             signature = private_key.sign(
                 data_to_sign.encode('utf-8'),
                 padding.PKCS1v15(),
                 hashes.SHA256()
             )
 
-            # Codificar firma en base64 para enviar al cliente
             signature_b64 = base64.b64encode(signature).decode('utf-8')
-
-            return Response(signature_b64)
+            return Response({"signature": signature_b64})
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
