@@ -31,7 +31,6 @@ class ProductoViewSet(generics.ListCreateAPIView):
         print("Usuario autenticado:", self.request.user)
         serializer.save()
 
-
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
