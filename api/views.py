@@ -7,13 +7,17 @@ from django.utils.dateparse import parse_date
 from django.db.models import Sum, F
 from rest_framework.permissions import AllowAny
 from datetime import datetime, timedelta
+import base64
 from django.utils.timezone import make_aware
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+from cryptography.hazmat.primitives import hashes
 from django.contrib.auth import authenticate
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from rest_framework.views import APIView
 from rest_framework import status
+from cryptography.hazmat.primitives.asymmetric import padding
 from rest_framework.generics import RetrieveAPIView
 # Create your views here.
 
@@ -191,3 +195,30 @@ class EliminarProductoAPIView(APIView):
 class ObtenerBoletaPorIDView(RetrieveAPIView):
     queryset = Boleta.objects.all()
     serializer_class = BoletaSerializer
+
+
+class FirmaDigitalAPIView(APIView):
+    def post(self, request):
+        data_to_sign = request.data.get('data')
+        if not data_to_sign:
+            return Response({"error": "No data to sign"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Carga tu clave privada PEM desde un archivo seguro en el servidor
+            with open('path/to/private-key.pem', 'rb') as key_file:
+                private_key = load_pem_private_key(key_file.read(), password=None)
+
+            # Firmar con SHA256 + PKCS1v15
+            signature = private_key.sign(
+                data_to_sign.encode('utf-8'),
+                padding.PKCS1v15(),
+                hashes.SHA256()
+            )
+
+            # Codificar firma en base64 para enviar al cliente
+            signature_b64 = base64.b64encode(signature).decode('utf-8')
+
+            return Response(signature_b64)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
