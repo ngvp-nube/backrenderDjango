@@ -27,15 +27,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-!g^vbo)39d##vb+o1iq(0667-t*@d)f9^_m8(fthnod=4smo*q'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
 # ALLOWED_HOSTS = ['.railway.app']
-# ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.1.9', '127.0.0.1','localhost']
 
-ALLOWED_HOSTS = [
-    "web-production-d1c8d.up.railway.app",
-]
+# ALLOWED_HOSTS = [
+#     "web-production-d1c8d.up.railway.app",
+# ]
 
 
 
@@ -66,6 +66,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+]
+CORS_ALLOWED_ORIGINS = [
+    "http://192.168.1.9:4200",
+    "http://192.168.1.100:4200"
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -99,12 +103,8 @@ WSGI_APPLICATION = 'myProyectoValdiviano.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
-        'USER': 'postgres',
-        'PASSWORD': 'ViTVIyGxmCuwqQXLYMYSQFWGGBGAskmB',
-        'HOST': 'trolley.proxy.rlwy.net',
-        'PORT': '37965',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / "db.sqlite3",  # el archivo estará en la carpeta del proyecto
     }
 }
 
