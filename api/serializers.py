@@ -80,3 +80,6 @@ class BoletaHistoricaSerializer(serializers.ModelSerializer):
     class Meta:
         model = BoletaHistorica
         fields = '__all__'
+
+class pruebaImpresionSerializer(serializers.Serializer):
+    mensaje = serializers.CharField(default="boleta de prueba")

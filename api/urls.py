@@ -18,4 +18,7 @@ urlpatterns=[
     path('api/producto/eliminar/<str:codigo>/', EliminarProductoAPIView.as_view(), name='eliminar-producto'),
     path('boletas/<int:pk>/', ObtenerBoletaPorIDView.as_view(), name='obtener-boleta'),
     path('api/firma/', FirmaDigitalAPIView.as_view(), name='firma-digital'),
+    path('api/imprimir-boleta/', ImprimirBoletaAPIView.as_view(), name='imprimir-boleta'),
+    path('boleta/ultimo-id/', UltimaBoletaAPIView.as_view(), name='boleta-ultimo-id'),
+    path('api/crear-boleta/', CrearBoletaAPIView.as_view(), name='crear-boleta'),
 ]

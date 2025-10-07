@@ -37,13 +37,14 @@ ALLOWED_HOSTS = ['*']
 CORS_ALLOWED_ORIGINS = [
     "http://192.168.1.100:8080",  # Frontend Angular en el servidor (si está corriendo ahí)
     "http://192.168.1.101:8080",  # Frontend en otro PC cliente (en este caso, IP 192.168.1.101)
+    "http://192.168.1.1:8080",  # Frontend en otro PC cliente (en este caso, IP 192.168.1.101)
     "http://localhost:8080",      # Para pruebas locales (si accedes desde localhost)
     "http://127.0.0.1:8080",      # También localhost, por si acaso
 ]
 
-# ALLOWED_HOSTS = [
-#     "web-production-d1c8d.up.railway.app",
-# ]
+ALLOWED_HOSTS = [
+    '*'
+]
 
 
 
