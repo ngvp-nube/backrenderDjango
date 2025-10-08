@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework import status
+from django.utils.timezone import localdate
 from rest_framework.generics import RetrieveAPIView
 from django.db import transaction
 from .utils.firma_digital import firmar_con_llave_privada
@@ -73,8 +74,21 @@ class ProductoPorCodigoView(APIView):
             return Response({'error': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
         
 class BoletaListCreateView(generics.ListCreateAPIView):
-    queryset = Boleta.objects.all()
     serializer_class = BoletaSerializer
+
+    def get_queryset(self):
+        # 🔹 Obtener la fecha actual (según zona horaria del servidor)
+        hoy = localdate()
+
+        # 🔹 Si quieres permitir un filtro opcional también
+        fecha_str = self.request.query_params.get('fecha')
+        if fecha_str:
+            fecha = parse_date(fecha_str)
+            if fecha:
+                return Boleta.objects.filter(fecha__date=fecha).order_by('-id')
+
+        # 🔹 Por defecto, devuelve solo las boletas del día actual
+        return Boleta.objects.filter(fecha__date=hoy).order_by('-id')
 
 
 class TotalContabilidadView(APIView):
