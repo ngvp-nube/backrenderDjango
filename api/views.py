@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils.dateparse import parse_date
 from django.db.models import Sum, F
 from rest_framework.permissions import AllowAny
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from django.utils.timezone import make_aware
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -25,6 +25,7 @@ import base64
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 from escpos.printer import *
+import threading
 
 class ProductoViewSet(generics.ListCreateAPIView):
     queryset = Producto.objects.all()
@@ -248,14 +249,123 @@ class FirmaDigitalAPIView(APIView):
             traceback.print_exc()
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# class ImprimirBoletaAPIView(APIView):
+#     def post(self, request, format=None):
+#         try:
+#             # ✅ Configura IP de la impresora
+#             ip_impresora = "192.168.1.102"
+#             printer = Network(ip_impresora)
+
+#             # ✅ Datos desde frontend
+#             venta = request.data.get("venta", {})
+#             productos = request.data.get("productos", [])
+#             total = request.data.get("total", 0)
+
+#             nro_venta = venta.get("numero", "")
+#             direccion = venta.get("direccion", "")
+#             fecha_str = venta.get("fecha")
+
+#             # ✅ CABECERA: título en grande
+#             printer.set(align='center', bold=True)
+#             printer._raw(b'\x1D\x21\x11')  # doble ancho y alto
+#             printer.text("El Valdiviano\n")
+#             printer._raw(b'\x1D\x21\x00')  # reset tamaño
+
+#             # ✅ DATOS DE VENTA
+#             printer.set(align='left', bold=False)
+#             printer.text(f"NRO Venta: {nro_venta}\n")
+#             printer.text(f"{direccion}\n")
+
+#             if fecha_str:
+#                 fecha = datetime.fromisoformat(fecha_str)
+#                 printer.text("Fecha: " + fecha.strftime("%d-%m-%Y, %H:%M:%S") + "\n")
+
+#             printer.text("─" * 44 + "\n")
+
+#             # ✅ ENCABEZADO DE PRODUCTOS
+#             printer.set(bold=True)
+#             printer.text(
+#                 f"{'Producto'.ljust(14)}"
+#                 f"{'Precio'.rjust(10)}"
+#                 f"{'Cant'.rjust(8)}"
+#                 f"{'Total'.rjust(10)}\n"
+#             )
+#             printer.set(bold=False)
+#             printer.text("─" * 44 + "\n")
+
+#             # ✅ DETALLE DE PRODUCTOS
+#             for p in productos:
+#                 nombre = p.get("nombre", "")
+#                 precio = p.get("precio", 0)
+#                 cantidad = p.get("cantidad", "")
+#                 unidad = p.get("unidad", "")
+#                 total_item = p.get("total", 0)
+
+#                 cantidad_str = f"{cantidad} {unidad}".strip() if unidad else str(cantidad)
+#                 precio_str = f"{precio:,}".replace(",", ".")
+#                 total_str = f"{total_item:,}".replace(",", ".")
+
+#                 line = (
+#                     f"{nombre.ljust(14)[:14]}"
+#                     f"{precio_str.rjust(10)}"
+#                     f"{cantidad_str.rjust(8)}"
+#                     f"{total_str.rjust(10)}\n"
+#                 )
+#                 printer.text(line)
+
+#             # ✅ TOTAL FINAL
+#             printer.text("─" * 44 + "\n")
+#             printer.set(align='center', bold=True)
+#             printer._raw(b'\x1D\x21\x11')  # doble alto/ancho
+#             total_str = f"{total:,}".replace(",", ".")
+#             printer.text(f"\nTOTAL $ {total_str}\n")
+#             printer._raw(b'\x1D\x21\x00')  # reset
+
+#             # ✅ MENSAJE FINAL
+#             printer.set(align='center')
+#             printer.text("\n¡Gracias por su compra!\n")
+
+#             # ✅ CORTAR PAPEL
+#             printer.cut()
+
+#             return Response(
+#                 {"status": "ok", "mensaje": "Boleta impresa correctamente ✅"},
+#                 status=status.HTTP_200_OK
+#             )
+
+#         except Exception as e:
+#             return Response(
+#                 {"status": "error", "mensaje": str(e)},
+#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+#             )
+
+printer_lock = threading.Lock()
 class ImprimirBoletaAPIView(APIView):
     def post(self, request, format=None):
+        # Locking de la impresora...
+        if not printer_lock.acquire(blocking=True):
+            return Response(
+                {"status": "error", "mensaje": "La impresora está ocupada. Intenta más tarde."},
+                status=status.HTTP_408_REQUEST_TIMEOUT
+            )
+        
         try:
-            # ✅ Configura IP de la impresora
             ip_impresora = "192.168.1.102"
-            printer = Network(ip_impresora)
 
-            # ✅ Datos desde frontend
+            MAX_REINTENTOS = 3
+            ESPERA_SEGUNDOS = 5
+
+            # Intento de conexión
+            for intento in range(MAX_REINTENTOS):
+                try:
+                    printer = Network(ip_impresora)
+                    break  # si conecta, salir del ciclo
+                except Exception as e:
+                    if intento < MAX_REINTENTOS - 1:
+                        time.sleep(ESPERA_SEGUNDOS)  # esperar antes de reintentar
+                    else:
+                        raise e
+
             venta = request.data.get("venta", {})
             productos = request.data.get("productos", [])
             total = request.data.get("total", 0)
@@ -264,13 +374,12 @@ class ImprimirBoletaAPIView(APIView):
             direccion = venta.get("direccion", "")
             fecha_str = venta.get("fecha")
 
-            # ✅ CABECERA: título en grande
+            # Imprimir boleta
             printer.set(align='center', bold=True)
             printer._raw(b'\x1D\x21\x11')  # doble ancho y alto
             printer.text("El Valdiviano\n")
-            printer._raw(b'\x1D\x21\x00')  # reset tamaño
+            printer._raw(b'\x1D\x21\x00')  # reset
 
-            # ✅ DATOS DE VENTA
             printer.set(align='left', bold=False)
             printer.text(f"NRO Venta: {nro_venta}\n")
             printer.text(f"{direccion}\n")
@@ -281,7 +390,6 @@ class ImprimirBoletaAPIView(APIView):
 
             printer.text("─" * 44 + "\n")
 
-            # ✅ ENCABEZADO DE PRODUCTOS
             printer.set(bold=True)
             printer.text(
                 f"{'Producto'.ljust(14)}"
@@ -292,7 +400,6 @@ class ImprimirBoletaAPIView(APIView):
             printer.set(bold=False)
             printer.text("─" * 44 + "\n")
 
-            # ✅ DETALLE DE PRODUCTOS
             for p in productos:
                 nombre = p.get("nombre", "")
                 precio = p.get("precio", 0)
@@ -312,31 +419,127 @@ class ImprimirBoletaAPIView(APIView):
                 )
                 printer.text(line)
 
-            # ✅ TOTAL FINAL
             printer.text("─" * 44 + "\n")
             printer.set(align='center', bold=True)
-            printer._raw(b'\x1D\x21\x11')  # doble alto/ancho
+            printer._raw(b'\x1D\x21\x11')
             total_str = f"{total:,}".replace(",", ".")
             printer.text(f"\nTOTAL $ {total_str}\n")
-            printer._raw(b'\x1D\x21\x00')  # reset
+            printer._raw(b'\x1D\x21\x00')
 
-            # ✅ MENSAJE FINAL
             printer.set(align='center')
             printer.text("\n¡Gracias por su compra!\n")
-
-            # ✅ CORTAR PAPEL
             printer.cut()
+
+            # Cerrar la impresora después de imprimir
+            printer.close()
 
             return Response(
                 {"status": "ok", "mensaje": "Boleta impresa correctamente ✅"},
                 status=status.HTTP_200_OK
             )
-
         except Exception as e:
+            # Si ocurre un error, asegurar que la impresora se cierra también
+            if 'printer' in locals():
+                try:
+                    printer.close()
+                except:
+                    pass  # ignoramos cualquier error al cerrar
             return Response(
                 {"status": "error", "mensaje": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        finally:
+            printer_lock.release()  # siempre liberar el lock
+
+
+# class ImprimirBoletaAPIView(APIView):
+#     def post(self, request, format=None):
+#         # Esperar hasta 10 segundos si la impresora está ocupada
+#         if not printer_lock.acquire(blocking=True, timeout=20):
+#             return Response(
+#                 {"status": "error", "mensaje": "La impresora está ocupada. Intenta más tarde."},
+#                 status=status.HTTP_408_REQUEST_TIMEOUT
+#             )
+        
+#         try:
+#             # ✅ Aquí va tu lógica completa de impresión
+#             ip_impresora = "192.168.1.102"
+#             printer = Network(ip_impresora,timeout=20)
+
+#             venta = request.data.get("venta", {})
+#             productos = request.data.get("productos", [])
+#             total = request.data.get("total", 0)
+
+#             nro_venta = venta.get("numero", "")
+#             direccion = venta.get("direccion", "")
+#             fecha_str = venta.get("fecha")
+
+#             printer.set(align='center', bold=True)
+#             printer._raw(b'\x1D\x21\x11')  # doble ancho y alto
+#             printer.text("El Valdiviano\n")
+#             printer._raw(b'\x1D\x21\x00')  # reset
+
+#             printer.set(align='left', bold=False)
+#             printer.text(f"NRO Venta: {nro_venta}\n")
+#             printer.text(f"{direccion}\n")
+
+#             if fecha_str:
+#                 fecha = datetime.fromisoformat(fecha_str)
+#                 printer.text("Fecha: " + fecha.strftime("%d-%m-%Y, %H:%M:%S") + "\n")
+
+#             printer.text("─" * 44 + "\n")
+
+#             printer.set(bold=True)
+#             printer.text(
+#                 f"{'Producto'.ljust(14)}"
+#                 f"{'Precio'.rjust(10)}"
+#                 f"{'Cant'.rjust(8)}"
+#                 f"{'Total'.rjust(10)}\n"
+#             )
+#             printer.set(bold=False)
+#             printer.text("─" * 44 + "\n")
+
+#             for p in productos:
+#                 nombre = p.get("nombre", "")
+#                 precio = p.get("precio", 0)
+#                 cantidad = p.get("cantidad", "")
+#                 unidad = p.get("unidad", "")
+#                 total_item = p.get("total", 0)
+
+#                 cantidad_str = f"{cantidad} {unidad}".strip() if unidad else str(cantidad)
+#                 precio_str = f"{precio:,}".replace(",", ".")
+#                 total_str = f"{total_item:,}".replace(",", ".")
+
+#                 line = (
+#                     f"{nombre.ljust(14)[:14]}"
+#                     f"{precio_str.rjust(10)}"
+#                     f"{cantidad_str.rjust(8)}"
+#                     f"{total_str.rjust(10)}\n"
+#                 )
+#                 printer.text(line)
+
+#             printer.text("─" * 44 + "\n")
+#             printer.set(align='center', bold=True)
+#             printer._raw(b'\x1D\x21\x11')
+#             total_str = f"{total:,}".replace(",", ".")
+#             printer.text(f"\nTOTAL $ {total_str}\n")
+#             printer._raw(b'\x1D\x21\x00')
+
+#             printer.set(align='center')
+#             printer.text("\n¡Gracias por su compra!\n")
+#             printer.cut()
+
+#             return Response(
+#                 {"status": "ok", "mensaje": "Boleta impresa correctamente ✅"},
+#                 status=status.HTTP_200_OK
+#             )
+#         except Exception as e:
+#             return Response(
+#                 {"status": "error", "mensaje": str(e)},
+#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+#             )
+#         finally:
+#             printer_lock.release()
 
 class UltimaBoletaAPIView(APIView):
     def get(self, request):
