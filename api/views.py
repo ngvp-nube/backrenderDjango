@@ -539,7 +539,7 @@ class ImprimirBoletaAPIView(APIView):
 #                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
 #             )
 #         finally:
-#             printer_lock.release()
+#             printer_lock.release() 
 
 class UltimaBoletaAPIView(APIView):
     def get(self, request):
