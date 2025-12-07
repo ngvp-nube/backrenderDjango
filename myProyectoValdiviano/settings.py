@@ -39,7 +39,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.1.103:4200",
     "http://192.168.1.103:4200",  # Frontend en otro PC cliente (en este caso, IP 192.168.1.101)
     "http://192.168.1.10:4200",  # Frontend en otro PC cliente (en este caso, IP 192.168.1.101)
-    "http://localhost:8080",      # Para pruebas locales (si accedes desde localhost)
+    "http://localhost:4200",      # Para pruebas locales (si accedes desde localhost)
     "http://127.0.0.1:8080",      # También localhost, por si acaso
 ]
 
